@@ -1,0 +1,5 @@
+Add command-line options:
+ - Choose a different working directory
+ - Append to real files
+ - Specify minimum and exclusion values
+ - dump to screen for testing?

@@ -1,0 +1,10 @@
+Quick program to import local users and groups (and associated shadow files) 
+from one machine to append to another, such as when doing a hardware migration.
+
+Copy /etc/passwd, group, shadow and gshadow to a working directory then run
+migrate_users.py and it will output new versions with '_to_append.txt' appended.
+
+These should be safe to add to the ends of the new systems' files.
+
+Edit migrate_users.py to add any exclusions and to specify the minimum exported 
+UID value (defaults to 1000 although old systems may wish to specify 500).
