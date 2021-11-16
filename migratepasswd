@@ -21,15 +21,13 @@ def write_shadow_line(outputfile, line, seen_x):
         outputfile.write(line)
 
 def main():
-    basedir = os.getcwd()
-
     seen_gids = []
     seen_users = []
     seen_groups = []
 
     with open('passwd', 'r') as passwdfile, open('passwd_to_append.txt', 'w') as outputfile:
         for line in passwdfile:
-            username, NA, uid, gid, extra = (convertifint(val) for val in line.strip().split(':', 4))
+            username, uid, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2,3)))
             if not username in USERNAMES_EXCLUDED:
                 if uid >= MIN_IMPORT_UID:
                     seen_users.append(username)
@@ -42,7 +40,7 @@ def main():
 
     with open('group', 'r') as groupfile, open('group_to_append.txt', 'w') as outputfile:
         for line in groupfile:
-            groupname, NA, gid, extra = (convertifint(val) for val in line.strip().split(':', 3))
+            groupname, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2)))
             if not groupname in GROUPNAMES_EXCLUDED:
                 if gid >= MIN_IMPORT_UID or gid in seen_gids:
                     seen_groups.append(groupname)
