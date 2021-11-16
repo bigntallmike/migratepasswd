@@ -27,6 +27,7 @@ def main():
 
     with open('passwd', 'r') as passwdfile, open('passwd_to_append.txt', 'w') as outputfile:
         for line in passwdfile:
+            # Username, UID and GID are positions 0, 2 and 3 in /etc/passwd
             username, uid, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2,3)))
             if not username in USERNAMES_EXCLUDED:
                 if uid >= MIN_IMPORT_UID:
@@ -40,6 +41,7 @@ def main():
 
     with open('group', 'r') as groupfile, open('group_to_append.txt', 'w') as outputfile:
         for line in groupfile:
+            # Groupname ane GID are positions 0 and 2 /etc/group
             groupname, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2)))
             if not groupname in GROUPNAMES_EXCLUDED:
                 if gid >= MIN_IMPORT_UID or gid in seen_gids:
