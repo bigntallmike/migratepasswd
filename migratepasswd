@@ -8,6 +8,13 @@ MIN_IMPORT_UID = 1000
 USERNAMES_EXCLUDED = ['nobody', 'root']
 GROUPNAMES_EXCLUDED = ['nobody', 'root', 'wheel']
 
+def convertifint(val):
+    '''Convert to integer if possible'''
+    try:
+        return int(val)
+    except ValueError:
+        return val
+
 def main():
     basedir = os.getcwd()
 
@@ -17,11 +24,7 @@ def main():
 
     with open('passwd', 'r') as passwdfile, open('passwd_to_append.txt', 'w') as outputfile:
         for line in passwdfile:
-            data = line.strip().split(':')
-            uid = int(data[2])
-            gid = int(data[3])
-            username = data[0]
-            #print("uid: {}, username: {}".format(uid, username))
+            username, NA, uid, gid, extra = (convertifint(val) for val in line.strip().split(':', 4))
             if not username in USERNAMES_EXCLUDED:
                 if uid >= MIN_IMPORT_UID:
                     seen_users.append(username)
@@ -30,16 +33,13 @@ def main():
 
     with open('shadow', 'r') as shadowfile, open('shadow_to_append.txt', 'w') as outputfile:
         for line in shadowfile:
-            data = line.strip().split(':')
-            username = data[0]
+            username = line.strip().split(':')[0]
             if username in seen_users:
                 outputfile.write(line)
 
     with open('group', 'r') as groupfile, open('group_to_append.txt', 'w') as outputfile:
         for line in groupfile:
-            data = line.strip().split(':')
-            groupname = data[0]
-            gid = int(data[2])
+            groupname, NA, gid, extra = (convertifint(val) for val in line.strip().split(':', 3))
             if not groupname in GROUPNAMES_EXCLUDED:
                 if gid >= MIN_IMPORT_UID or gid in seen_gids:
                     seen_groups.append(groupname)
@@ -47,8 +47,7 @@ def main():
 
     with open('gshadow', 'r') as gshadowfile, open('gshadow_to_append.txt', 'w') as outputfile:
         for line in gshadowfile:
-            data = line.strip().split(':')
-            groupname = data[0]
+            groupname = line.strip().split(':')[0]
             if groupname in seen_groups:
                 outputfile.write(line)
 
