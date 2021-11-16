@@ -15,6 +15,11 @@ def convertifint(val):
     except ValueError:
         return val
 
+def write_shadow_line(outputfile, line, seen_x):
+    xname = line.strip().split(':')[0]
+    if xname in seen_x:
+        outputfile.write(line)
+
 def main():
     basedir = os.getcwd()
 
@@ -33,9 +38,7 @@ def main():
 
     with open('shadow', 'r') as shadowfile, open('shadow_to_append.txt', 'w') as outputfile:
         for line in shadowfile:
-            username = line.strip().split(':')[0]
-            if username in seen_users:
-                outputfile.write(line)
+            write_shadow_line(outputfile, line, seen_users)
 
     with open('group', 'r') as groupfile, open('group_to_append.txt', 'w') as outputfile:
         for line in groupfile:
@@ -47,9 +50,7 @@ def main():
 
     with open('gshadow', 'r') as gshadowfile, open('gshadow_to_append.txt', 'w') as outputfile:
         for line in gshadowfile:
-            groupname = line.strip().split(':')[0]
-            if groupname in seen_groups:
-                outputfile.write(line)
+            write_shadow_line(outputfile, line, seen_groups)
 
 if __name__ == "__main__":
     main()
