@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 # Read in backups of /etc/passwd, group, shadow, gshadow and create new versions
+#
+# Retain all users above MIN_IMPORT_UID, except those in excluded list.
+# Retain all groups above MIN_IMPORT_UID, and those referenced by the users above,
+# except those in the excluded list.
 
-import sys
-import os
-
+########################################################## 
+# This may need to be lowered to 500 for some OS versions
 MIN_IMPORT_UID = 1000
 USERNAMES_EXCLUDED = ['nobody', 'root']
 GROUPNAMES_EXCLUDED = ['nobody', 'root', 'wheel']
@@ -21,6 +24,7 @@ def write_shadow_line(outputfile, line, seen_x):
         outputfile.write(line)
 
 def main():
+    seen_uids = []
     seen_gids = []
     seen_users = []
     seen_groups = []
@@ -31,9 +35,19 @@ def main():
             username, uid, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2,3)))
             if not username in USERNAMES_EXCLUDED:
                 if uid >= MIN_IMPORT_UID:
+                    seen_uids.append(uid) # Only for duplicate checking
                     seen_users.append(username)
                     seen_gids.append(gid)
                     outputfile.write(line)
+
+    # Check for local duplicates
+    with open('/etc/passwd', 'r') as passwdfile:
+        for line in passwdfile:
+            username, uid, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2,3)))
+            if username in seen_users:
+                print(f"Possible duplicate user: {username}")
+            elif uid in seen_uids:
+                print(f"Possible duplicate user: {uid}")
 
     with open('shadow', 'r') as shadowfile, open('shadow_to_append.txt', 'w') as outputfile:
         for line in shadowfile:
@@ -47,6 +61,15 @@ def main():
                 if gid >= MIN_IMPORT_UID or gid in seen_gids:
                     seen_groups.append(groupname)
                     outputfile.write(line)
+
+    # Check for local duplicates
+    with open('/etc/group', 'r') as groupfile:
+        for line in groupfile:
+            groupname, gid = (convertifint(val) for val in (line.strip().split(':')[i] for i in (0,2)))
+            if groupname in seen_groups:
+                print(f"Possible duplicate group: {groupname}")
+            elif gid in seen_gids:
+                print(f"Possible duplicate group: {gid}")
 
     with open('gshadow', 'r') as gshadowfile, open('gshadow_to_append.txt', 'w') as outputfile:
         for line in gshadowfile:
